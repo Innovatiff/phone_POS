@@ -66,8 +66,8 @@ export function StatCard({ label, value, delta, trend, color, icon, hint, onClic
     <div className={cx('card p-5 flex items-center justify-between gap-3 min-w-0', onClick && 'cursor-pointer hover:shadow-pop transition-shadow')} onClick={onClick}>
       <div className="min-w-0">
         <div className="text-[13px] font-medium text-slate-500 flex items-center gap-1.5">{icon}{label}</div>
-        <div className="flex items-baseline gap-3 mt-1">
-          <div className="text-[30px] leading-none font-bold text-slate-900 tracking-tight truncate">{value}</div>
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mt-1">
+          <div className="text-[26px] leading-none font-bold text-slate-900 tracking-tight whitespace-nowrap">{value}</div>
           {delta !== undefined && (
             <span className={cx('text-sm font-semibold inline-flex items-center gap-0.5', good ? 'text-emerald-600' : 'text-red-600')}>
               {delta >= 0 ? <ChevronUp size={14} strokeWidth={3} /> : <ChevronDown size={14} strokeWidth={3} />}
@@ -77,7 +77,7 @@ export function StatCard({ label, value, delta, trend, color, icon, hint, onClic
         </div>
         {hint && <div className="text-[11px] text-slate-400 mt-1.5">{hint}</div>}
       </div>
-      {trend && trend.length > 1 && <Sparkline data={trend} color={c} />}
+      {trend && trend.length > 1 && <div className="shrink-0 hidden sm:block"><Sparkline data={trend} color={c} width={80} /></div>}
     </div>
   )
 }

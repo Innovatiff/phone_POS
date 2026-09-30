@@ -38,7 +38,9 @@ function persist(db: Database) {
   saveTimer = window.setTimeout(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(db))
-      channel?.postMessage({ type: 'db', from: TAB_ID })
+      // Send the snapshot itself: localStorage writes propagate to other tabs asynchronously in
+      // Chromium, so a receiver that re-reads storage on message could still see the previous value.
+      channel?.postMessage({ type: 'db', from: TAB_ID, db })
     } catch (e) {
       console.error('persist failed', e)
     }
@@ -67,7 +69,7 @@ export interface RefundInput {
 
 interface DBState {
   db: Database
-  hydrate: () => void
+  hydrate: (snapshot?: Database) => void
   mutate: (fn: (db: Database) => void) => void
   // helpers
   log: (entry: Omit<ActivityLog, 'id' | 'createdAt' | 'userName'> & { userName?: string }) => void
@@ -203,8 +205,8 @@ export const useDB = create<DBState>((set, get) => {
 
   return {
     db: initial,
-    hydrate: () => {
-      const fresh = load()
+    hydrate: (snapshot?: Database) => {
+      const fresh = snapshot ?? load()
       configureCurrency(fresh.settings.locale, fresh.settings.currency)
       set({ db: fresh })
     },
@@ -844,7 +846,7 @@ export const useDB = create<DBState>((set, get) => {
 // ─── Cross-tab sync ──────────────────────────────────────────────────────────
 if (channel) {
   channel.onmessage = (ev) => {
-    if (ev.data?.type === 'db' && ev.data.from !== TAB_ID) useDB.getState().hydrate()
+    if (ev.data?.type === 'db' && ev.data.from !== TAB_ID) useDB.getState().hydrate(ev.data.db as Database | undefined)
   }
 }
 window.addEventListener('storage', (e) => {
