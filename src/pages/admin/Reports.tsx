@@ -1,0 +1,3 @@
+import React from 'react'
+import { PageHeader } from '@/components/ui'
+export default function Reports() { return <PageHeader title="Reports" subtitle="Coming soon" /> }
