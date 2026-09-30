@@ -57,6 +57,7 @@ export function buildSeed(): Database {
   const rint = (min: number, max: number) => Math.floor(r() * (max - min + 1)) + min
   const now = new Date()
   const start = addDays(now, -120)
+  start.setHours(0, 0, 0, 0)
   const sinceStart = (days: number, hour = 9, min = 0) => { const d = addDays(start, days); d.setHours(hour, min, 0, 0); return d }
 
   // ── Users ─────────────────────────────────────────────────────────────────
@@ -281,7 +282,7 @@ export function buildSeed(): Database {
   }
 
   const methods: PaymentMethod[] = ['cash', 'card', 'card', 'card', 'mobile', 'cash']
-  const dayCount = 120
+  const dayCount = 121 // includes today (partial)
   for (let d = 0; d < dayCount; d++) {
     const date = addDays(start, d)
     const dow = date.getDay()
@@ -426,11 +427,19 @@ export function buildSeed(): Database {
     const p = products.find((x) => x.id === pid)!
     list.sort((a, b) => a.createdAt.localeCompare(b.createdAt))
     // total delta after initial equals current - initial => scale initial so that the chain lands on current stock
-    const deltas = list.filter((m) => m.type !== 'initial').reduce((a, m) => a + m.qty, 0)
+    const nonInitial = list.filter((m) => m.type !== 'initial')
+    const deltas = nonInitial.reduce((a, m) => a + m.qty, 0)
+    let prefix = 0
+    let minPrefix = 0
+    nonInitial.forEach((m) => { prefix += m.qty; minPrefix = Math.min(minPrefix, prefix) })
     const initial = list.find((m) => m.type === 'initial')
-    if (initial) { initial.qty = Math.max(0, p.stock - deltas); initial.after = initial.qty }
+    if (initial) { initial.qty = Math.max(0, p.stock - deltas, -minPrefix); initial.after = initial.qty }
     let running = 0
     list.forEach((m) => { m.before = running; running += m.qty; m.after = running })
+    if (running !== p.stock) {
+      p.stock = running
+      if (p.trackSerial) { while (p.serials.length < running) p.serials.push(generateIMEI(r)); p.serials = p.serials.slice(0, running) }
+    }
   })
 
   // ── Promotions ───────────────────────────────────────────────────────────
