@@ -371,7 +371,7 @@ function ReportTable({ data, showAll: forceAll }: { data: ReportData; showAll?: 
           <tbody>
             {visible.map((r, i) => (
               <tr key={i}>
-                {data.columns.map((c) => <td key={c.key} className={cx(numeric(c.fmt) && 'text-right', c.key === 'status' && 'whitespace-nowrap')}>{c.key === 'status' && typeof r[c.key] === 'string' ? <Badge tone={statusTone(String(r[c.key]).toLowerCase().replace(' ', '_'))}>{String(r[c.key])}</Badge> : fmtCell(r[c.key], c.fmt)}</td>)}
+                {data.columns.map((c) => <td key={c.key} className={cx(numeric(c.fmt) && 'text-right', (c.key === 'status' || c.fmt === 'date' || c.fmt === 'datetime') && 'whitespace-nowrap')}>{c.key === 'status' && typeof r[c.key] === 'string' ? <Badge tone={statusTone(String(r[c.key]).toLowerCase().replace(' ', '_'))}>{String(r[c.key])}</Badge> : fmtCell(r[c.key], c.fmt)}</td>)}
               </tr>
             ))}
           </tbody>
